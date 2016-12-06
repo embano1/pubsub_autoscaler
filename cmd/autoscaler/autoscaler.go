@@ -31,6 +31,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// error handling
 func failOnError(err error, msg string) {
 	if err != nil {
 		log.Fatalf("%s: %s", msg, err)
@@ -52,12 +53,15 @@ func inspect(ch *amqp.Channel, qinspectch chan int) {
 // scale deployment based on number of messages in the rabbitmq channel
 func scale(clientset *kubernetes.Clientset, namespace *string, deployment *string, qmax int, qmin int, scalech chan int, qinspectch chan int) {
 	var replicas int32
+	var lastval int
+	var qdepth int
 
 	for {
 
 		// --- Get queue depth
-		qdepth := <-qinspectch
-		log.Printf("Currently %d messages in queue", qdepth)
+		lastval = qdepth
+		qdepth = <-qinspectch
+		log.Printf("Currently %d messages in queue (last seen: %d)", qdepth, lastval)
 
 		// --- Get K8s deployment information (replicas)
 		// v1beta1.ScaleSpec.replicas
@@ -70,10 +74,11 @@ func scale(clientset *kubernetes.Clientset, namespace *string, deployment *strin
 		replicas = currentscale.Spec.Replicas
 		//log.Printf("Current qty of replicas for deployment %v: %v\n", *deployment, currentscale.Spec.Replicas)
 
-		// --- Scale up/ down by 5 pods, if needed
-		if qdepth > qmax {
-			replicas++
+		// --- Scale up/ down pods
+		switch {
+		case qdepth > qmax && qdepth > lastval:
 
+			replicas++
 			// --- Update K8s API .Spec with target state (replicas)
 			currentscale.Spec = v1beta1.ScaleSpec{Replicas: replicas}
 
@@ -83,8 +88,9 @@ func scale(clientset *kubernetes.Clientset, namespace *string, deployment *strin
 				panic(err.Error())
 			}
 			log.Printf("Scaled %v up to qty: %d\n", *deployment, replicas)
-		} else if qdepth > qmin && currentscale.Spec.Replicas > 1 {
-			replicas = 1
+
+		case qdepth > qmin && qdepth < qmax && currentscale.Spec.Replicas > 1:
+			replicas--
 			//fmt.Println(replicas)
 
 			// --- Update K8s API .Spec with target state (replicas)
@@ -97,7 +103,7 @@ func scale(clientset *kubernetes.Clientset, namespace *string, deployment *strin
 			}
 			log.Printf("Scaled %v down to qty: %d\n", *deployment, replicas)
 
-		} else if qdepth < qmin && currentscale.Spec.Replicas >= 1 {
+		case qdepth < qmin && currentscale.Spec.Replicas >= 1:
 			replicas = 0
 			//fmt.Println(replicas)
 
@@ -111,6 +117,7 @@ func scale(clientset *kubernetes.Clientset, namespace *string, deployment *strin
 			}
 			log.Printf("Queue below watermark (qmin: %d, qmax: %d)...reducing to %d replicas\n", qmin, qmax, replicas)
 		}
+
 		time.Sleep(10 * time.Second)
 	}
 }

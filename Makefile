@@ -1,9 +1,9 @@
 REPO=embano1
 BINARY=pubsub_autoscaler
-RECEIVER="./cmd/receiver"
-SENDER="./cmd/sender"
-AUTOSCALER="./cmd/autoscaler"
-VERSION=1.0
+RECEIVER=./cmd/receiver
+SENDER=./cmd/sender
+AUTOSCALER=./cmd/autoscaler
+VERSION=1.2
 
 all: image
 

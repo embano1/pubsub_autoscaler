@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  generation: 1
+  labels:
+    app: autoscaler
+  name: autoscaler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: autoscaler
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: autoscaler
+    spec:
+      containers:
+      - args:
+        - /autoscaler
+        image: embano1/pubsub_autoscaler:1.2
+        imagePullPolicy: IfNotPresent
+        name: autoscaler
+        resources:
+          limits:
+            cpu: 0.05
+            memory: 10M
+        terminationMessagePath: /dev/termination-log
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status: {}

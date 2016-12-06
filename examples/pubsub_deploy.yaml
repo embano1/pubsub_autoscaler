@@ -1,0 +1,80 @@
+apiVersion: v1
+items:
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    generation: 1
+    labels:
+      app: sender
+    name: sender
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: sender
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 1
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          app: sender
+      spec:
+        containers:
+        - args:
+          - /sender
+          image: embano1/pubsub_autoscaler:1.2
+          imagePullPolicy: IfNotPresent
+          name: sender
+          resources:
+            limits:
+              cpu: 0.001
+              memory: 10M
+          terminationMessagePath: /dev/termination-log
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status: {}
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    generation: 1
+    labels:
+      app: receiver
+    name: receiver
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: receiver
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 1
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          app: receiver
+      spec:
+        containers:
+        - args:
+          - /receiver
+          image: embano1/pubsub_autoscaler:1.2
+          imagePullPolicy: IfNotPresent
+          name: receiver
+          resources:
+            requests:
+              cpu: 0.05
+              memory: 10M
+          terminationMessagePath: /dev/termination-log
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status: {}
+kind: List
+metadata: {}

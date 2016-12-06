@@ -5,13 +5,13 @@ metadata:
     app: rabbitmq
   name: rabbitmq
 spec:
-  clusterIP: 
+  clusterIP:
   ports:
-  - name: port-1
+  - name: amqp
     port: 5672
     protocol: TCP
     targetPort: 5672
-  - name: port-2
+  - name: ui
     port: 15672
     protocol: TCP
     targetPort: 15672
