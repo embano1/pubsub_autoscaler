@@ -5,12 +5,12 @@ SENDER=./cmd/sender
 AUTOSCALER=./cmd/autoscaler
 VERSION=1.2
 
-all: image
-
 build:
 	cd ${SENDER}/ && GOOS=linux go build -a --ldflags '-extldflags "-static"' -tags netgo -installsuffix netgo .
 	cd ${RECEIVER}/ && GOOS=linux go build -a --ldflags '-extldflags "-static"' -tags netgo -installsuffix netgo .
 	cd ${AUTOSCALER}/ && GOOS=linux go build -a --ldflags '-extldflags "-static"' -tags netgo -installsuffix netgo .
+
+all: image
 
 image: build
 	docker build -t ${REPO}/${BINARY}:${VERSION} .
