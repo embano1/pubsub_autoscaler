@@ -13,7 +13,7 @@ The sender just generates random integers in random intervals, publishs them to 
 I wanted to use a custom metric, i.e. the queue depth of RabbitMQ as a trigger for scaling. Again, proof-of-concept only, code probably also needs some cleaning and can be shortened ,)  
   
 ## Quick Start
-You need a running Kubernetes environment to deploy this demo. 
+You need a running Kubernetes environment and kubectl installed to deploy this demo. 
 
 	- git clone https://github.com/embano1/pubsub_autoscaler.git
 	- cd pubsub_autoscaler
@@ -32,7 +32,6 @@ If you work with minikube, you can get the port of the RabbitMQ management UI wi
 ## Software requirements (my test environment)
 	- kubectl v1.4.3
 	- minikube v0.13.0 or Kubernetes v1.4.6+coreos.0 (from vagrant multi-node https://github.com/coreos/coreos-kubernetes/tree/master/multi-node/vagrant)
-	- RabbitMQ 3.6.6
 
 
 ## Software requirements (my build environment)
